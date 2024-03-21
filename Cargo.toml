@@ -1,0 +1,165 @@
+[package]
+name = "photo-365"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+axum = { version = "0.7", optional = true }
+base64 = { version = "0.21.2", optional = true }
+console_error_panic_hook = "0.1"
+leptos = { version = "0.6", features = ["nightly"] }
+leptos_axum = { version = "0.6", optional = true }
+leptos_meta = { version = "0.6", features = ["nightly"] }
+leptos_router = { version = "0.6", features = ["nightly"] }
+tokio = { version = "1", features = ["rt-multi-thread","macros","full"], optional = true }
+tower = { version = "0.5", optional = true }
+tower-http = { version = "0.6", features = ["fs", "compression-gzip", "compression-zstd", "compression-deflate", "full"], optional = true }
+wasm-bindgen = "=0.2.93"
+thiserror = "1"
+tracing = { version = "0.1", optional = true }
+tracing-subscriber = {version = "0.3.18", optional = true }
+http = "1"
+anyhow = "1.0.81"
+futures = { version = "0.3.30", optional = true }
+dotenvy = { version = "0.15.7", optional = true }
+rayon = { version = "1.9.0", optional = true }
+chrono = { version = "0.4.35", optional = true }
+uuid = { version = "1.8.0", features = ["v4"], optional = true }
+serde_json = { version = "1.0.114", optional = true }
+image = { version = "0.24.9", optional = true }
+async-recursion = { version = "1.1.0", optional = true }
+cache_loader_async = { version = "0.2.1", features = ["ttl-cache"], optional = true }
+tokio-stream = { version = "0.1.15", optional = true }
+webp = { version = "0.2.6", optional = true }
+pgp = { version = "0.10", optional = true }
+urldecode = { version = "0.1.1", optional = true }
+urlencoding = { version = "2.1.2" }
+log = "0.4.21"
+axum-extra = { version = "0.9.2", optional = true, features = ["cookie", "json-deserializer"] }
+serde = "1.0.197"
+cookie = { version = "0.18.0", optional = true }
+ring = { version = "0.17.8", optional = true }
+hex = { version = "0.4.3", optional = true }
+regex = "1.11.0"
+leptos_icons = "0.3.1"
+icondata = "0.4.0"
+leptos-use = { version = "0.13.5", features = ["use_cookie"] }
+codee = "0.2.0"
+lazy_static = { version = "1.5.0", optional = true }
+
+[features]
+hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
+ssr = [
+    "dep:axum",
+    "dep:tokio",
+    "dep:tower",
+    "dep:tower-http",
+    "dep:leptos_axum",
+    "dep:futures",
+    "dep:dotenvy",
+    "dep:rayon",
+    "dep:chrono",
+    "dep:uuid",
+    "dep:serde_json",
+    "dep:image",
+    "dep:async-recursion",
+
+    "dep:cache_loader_async",
+    "dep:tokio-stream",
+    "dep:webp",
+    "dep:pgp",
+    "dep:hex",
+    "dep:ring",
+    "dep:base64",
+    "dep:urldecode",
+    "dep:axum-extra",
+    "dep:tower-http",
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos-use/ssr",
+    "leptos-use/axum",
+    "leptos_router/ssr",
+    "dep:tracing",
+    "dep:tracing-subscriber",
+    "dep:cookie",
+    "dep:lazy_static",
+]
+cookie = ["dep:cookie"]
+
+# Defines a size-optimized profile for the WASM bundle in release mode
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[package.metadata.leptos]
+# The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
+output-name = "photo-365"
+
+# The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
+site-root = "target/site"
+
+# The site-root relative folder where all compiled output (JS, WASM and CSS) is written
+# Defaults to pkg
+site-pkg-dir = "pkg"
+
+# [Optional] The source CSS file. If it ends with .sass or .scss then it will be compiled by dart-sass into CSS. The CSS is optimized by Lightning CSS before being written to <site-root>/<site-pkg>/app.css
+style-file = "style/main.scss"
+# Assets source dir. All files found here will be copied and synchronized to site-root.
+# The assets-dir cannot have a sub directory with the same name/path as site-pkg-dir.
+#
+# Optional. Env: LEPTOS_ASSETS_DIR.
+assets-dir = "public"
+
+# The IP and port (ex: 127.0.0.1:3000) where the server serves the content. Use it in your server setup.
+site-addr = "0.0.0.0:3000"
+
+# The port to use for automatic reload monitoring
+reload-port = 3001
+
+# [Optional] Command to use when running end2end tests. It will run in the end2end dir.
+#   [Windows] for non-WSL use "npx.cmd playwright test"
+#   This binary name can be checked in Powershell with Get-Command npx
+end2end-cmd = "npx playwright test"
+end2end-dir = "end2end"
+
+#  The browserlist query used for optimizing the CSS.
+browserquery = "defaults"
+
+# Set by cargo-leptos watch when building with that tool. Controls whether autoreload JS will be included in the head
+watch = false
+
+# The environment Leptos will run in, usually either "DEV" or "PROD"
+env = "DEV"
+
+# The features to use when compiling the bin target
+#
+# Optional. Can be over-ridden with the command line parameter --bin-features
+bin-features = ["ssr"]
+
+# If the --no-default-features flag should be used when compiling the bin target
+#
+# Optional. Defaults to false.
+bin-default-features = false
+
+# The features to use when compiling the lib target
+#
+# Optional. Can be over-ridden with the command line parameter --lib-features
+lib-features = ["hydrate"]
+
+# If the --no-default-features flag should be used when compiling the lib target
+#
+# Optional. Defaults to false.
+lib-default-features = false
+
+# The profile to use for the lib target when compiling for release
+#
+# Optional. Defaults to "release".
+lib-profile-release = "wasm-release"
+tailwind-input-file = "style/tailwind.css"
+tailwind-config-file = "tailwind.config.js"

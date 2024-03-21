@@ -1,0 +1,15 @@
+{
+  "cargo": {
+    "features": [
+      "ssr",
+      "hydrate"
+    ]
+  },
+  "rustfmt": {
+    "overrideCommand": [
+      "leptosfmt",
+      "--stdin",
+      "--rustfmt"
+    ]
+  }
+}
