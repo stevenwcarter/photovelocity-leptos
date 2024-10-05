@@ -1,6 +1,6 @@
 use crate::context::GraphQLContext;
 use crate::pgp::AuthName;
-use axum::extract::FromRequestParts;
+use axum::extract::{FromRequestParts, Query};
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
@@ -8,7 +8,9 @@ use axum::RequestPartsExt;
 use axum::{async_trait, http::StatusCode, Extension, Json, Router};
 use axum_extra::extract::CookieJar;
 use log::*;
-use serde::Serialize;
+use serde::{de, Deserialize, Deserializer, Serialize};
+use std::fmt;
+use std::str::FromStr;
 use std::sync::Arc;
 use tower::ServiceBuilder;
 use tower_http::ServiceBuilderExt;
@@ -46,7 +48,7 @@ pub async fn folder_thumbnail(
 
     use crate::image::ImageSvc;
 
-    info!("Auth for folder thumb is: {:?}", context.auth);
+    trace!("Auth for folder thumb is: {:?}", context.auth);
     let result = ImageSvc::get_folder_thumbnail(&context, &folder, size).await;
     match result {
         Err(e) => {
@@ -93,6 +95,25 @@ pub fn err_wrapper<T: Serialize>(result: anyhow::Result<T>) -> impl IntoResponse
     )
 }
 
+#[derive(Deserialize, Debug)]
+struct QueryParameters {
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    auth: Option<String>,
+}
+
+fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: FromStr,
+    T::Err: fmt::Display,
+{
+    let opt = Option::<String>::deserialize(de)?;
+    match opt.as_deref() {
+        None | Some("") => Ok(None),
+        Some(s) => FromStr::from_str(s).map_err(de::Error::custom).map(Some),
+    }
+}
+
 pub struct SessionContext(pub Arc<GraphQLContext>);
 
 #[async_trait]
@@ -105,6 +126,11 @@ where
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let cookie_jar = parts.extract::<CookieJar>().await.unwrap();
 
+        let Query(query) = parts
+            .extract::<Query<QueryParameters>>()
+            .await
+            .expect("could not process query parameters");
+
         let Extension(context) = parts
             .extract::<Extension<Arc<GraphQLContext>>>()
             .await
@@ -113,11 +139,17 @@ where
                 err.into_response()
             })?;
 
-        let Some(session_id) = cookie_jar.get("X-Login") else {
+        let session_id = match (cookie_jar.get("X-Login"), query.auth) {
+            (None, Some(auth)) => Some(auth),
+            (Some(cookie), _) => Some(cookie.value().to_string()),
+            _ => None,
+        };
+
+        let Some(session_id) = session_id else {
             return Ok(Self(context.clone()));
         };
-        let login_cookie = session_id.value();
-        let auth_type = AuthName::parse(login_cookie);
+
+        let auth_type = AuthName::parse(session_id);
 
         let context = context.attach_session(auth_type);
 

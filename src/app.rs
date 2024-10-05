@@ -51,24 +51,24 @@ struct AuthParams {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let (auth, set_auth) = use_cookie::<String, FromToStringCodec>("X-Login");
+    let (_auth, set_auth) = use_cookie::<String, FromToStringCodec>("X-Login");
     let params = use_query::<AuthParams>();
-    // let auth_val = move || {
-    //     params.with(|params| match params {
-    //         Ok(params) => {
-    //             logging::log!("Params: {:?}", params.auth);
-    //             params.auth.clone()
-    //         }
-    //         _ => None,
-    //     })
-    // };
-    // create_isomorphic_effect(move |_| {
-    //     logging::log!("Auth {:?}", auth_val());
-    //     let auth = auth_val();
-    //     if auth.is_some() {
-    //         set_auth(auth);
-    //     }
-    // });
+    let auth_val = move || {
+        params.with(|params| match params {
+            Ok(params) => {
+                logging::log!("Params: {:?}", params.auth);
+                params.auth.clone()
+            }
+            _ => None,
+        })
+    };
+    create_isomorphic_effect(move |_| {
+        logging::log!("Auth {:?}", auth_val());
+        let auth = auth_val();
+        if auth.is_some() {
+            set_auth(auth);
+        }
+    });
     // Creates a reactive value to update the button
     let location = use_location();
     let images = create_resource(

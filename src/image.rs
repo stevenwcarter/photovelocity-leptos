@@ -1,7 +1,8 @@
-#![allow(clippy::unnecessary_unwrap)]
+#![allow(clippy::unnecessary_unwrap, clippy::needless_return)]
 use crate::context::GraphQLContext;
 use crate::folder::FolderSvc;
 use crate::pgp::AuthName;
+use crate::EndsWithAny;
 use crate::Folder;
 use crate::{base_folder, Image};
 use async_recursion::async_recursion;
@@ -105,7 +106,7 @@ impl ImageSvc {
     }
 
     pub async fn is_hidden(path: &str, auth_type: &Option<AuthName>) -> bool {
-        debug!("Checking if hidden with auth type {:?}", auth_type);
+        trace!("Checking if hidden with auth type {:?}", auth_type);
         let folder = base_folder() + strip_slashes(path) + "/.hide";
         let file = Path::new(&folder);
 
@@ -207,7 +208,7 @@ impl ImageSvc {
             .filter(|f| !f.as_ref().unwrap().metadata().unwrap().is_dir())
             .map(|p| p.unwrap().path().to_str().unwrap().to_string())
             .map(|p| p.replace(base_folder().as_str(), ""))
-            .filter(|p| p.to_lowercase().ends_with(".jpg") || p.to_lowercase().ends_with(".jpeg"))
+            .filter(|p| p.to_lowercase().as_str().ends_with_any(&[".jpg", ".jpeg"]))
             .map(Image::new)
             .collect();
 

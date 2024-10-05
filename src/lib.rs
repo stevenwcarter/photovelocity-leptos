@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_unwrap, clippy::needless_return)]
 pub mod app;
 pub mod error_template;
 #[cfg(feature = "ssr")]
@@ -19,8 +20,11 @@ use serde::Serialize;
 
 #[cfg(feature = "ssr")]
 use crate::pgp::{read_gpg, AuthName};
+#[cfg(feature = "ssr")]
 use std::env;
+#[cfg(feature = "ssr")]
 use std::fmt;
+#[cfg(feature = "ssr")]
 use std::str::FromStr;
 
 #[cfg(feature = "ssr")]
@@ -168,13 +172,25 @@ impl EndsWithAny for &String {
         false
     }
 }
+#[cfg(feature = "ssr")]
+impl EndsWithAny for &str {
+    fn ends_with_any(&self, suffixes: &[&str]) -> bool {
+        for s in suffixes {
+            if self.ends_with(s) {
+                return true;
+            }
+        }
+
+        false
+    }
+}
 
 pub fn nth_index_of(s: &str, c: char, n: usize) -> Option<usize> {
-    let mut chars = s.chars();
+    let chars = s.chars();
     let mut pos = 0;
     let mut count = 0;
 
-    while let Some(ch) = chars.next() {
+    for ch in chars {
         pos += 1;
         if ch == c {
             count += 1;
@@ -249,8 +265,6 @@ mod tests {
     #[test]
     fn it_interleaves_numbers_properly() {
         let a: Vec<u32> = vec![1, 2, 3];
-
-        let repl = || 0;
 
         assert_eq!(a.interleave(&|| 0), vec![1, 0, 2, 0, 3]);
     }
